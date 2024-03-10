@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Livro } from 'src/app/models/interfaces';
 
 const body = document.querySelector("body");
 
@@ -9,11 +10,12 @@ const body = document.querySelector("body");
 })
 export class ModalLivroComponent {
 
-  constructor() { }
-
-  @Input() livro: Object;
-  statusModal: boolean = true;
+  @Input() livro: Livro;
   @Output() mudouModal = new EventEmitter()
+
+  statusModal: boolean = true;
+
+  constructor() { }
 
   fecharModal() {
     this.statusModal = false
@@ -26,9 +28,8 @@ export class ModalLivroComponent {
       body.style.overflow = "hidden";
     }
   }
-  
-  lerPrevia() {
-    window.open( '_blank');
-  }
 
+  lerPrevia() {
+    window.open(this.livro.previewLink + '_blank');
+  }
 }

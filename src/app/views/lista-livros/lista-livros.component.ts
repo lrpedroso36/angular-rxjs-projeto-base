@@ -1,52 +1,32 @@
-import { Item, Livro } from './../../models/interfaces';
+import { Item } from './../../models/interfaces';
 import { LivroService } from './../../service/livro.service';
-import { Component, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component } from '@angular/core';
+import { Subscription, switchMap, map } from 'rxjs';
+import { LivroColumeInfo } from 'src/app/models/livro-volume-info';
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-lista-livros',
   templateUrl: './lista-livros.component.html',
   styleUrls: ['./lista-livros.component.css']
 })
-export class ListaLivrosComponent implements OnDestroy {
+export class ListaLivrosComponent {
 
-  listaLivros: Livro[];
-  livro: Livro;
-  campoBusca!: string;
+  campoBusca = new FormControl();
   subscription: Subscription
 
   constructor(private service: LivroService) { }
 
-  buscarLibros() : void {
-    this.subscription = this.service.buscar(this.campoBusca).subscribe(
-      {
-        next: (items) => {
-          this.listaLivros = this.livrosResultadoParaLivros(items)
-        },
-        error: error => console.log(error),
-      });
-  }
+  livrosEncontrados$ = this.campoBusca.valueChanges
+  .pipe(
+    switchMap((valorDigitado) => this.service.buscar(valorDigitado)),
+    map(items => this.livrosResultadoParaLivros(items))
+  );
 
-  livrosResultadoParaLivros(items): Livro[] {
-    const livros: Livro[] = []
-
-    items.forEach(item => {
-      livros.push(this.livro = {
-        title: item.volumeInfo?.title,
-        authors: item.volumeInfo?.authors,
-        publisher: item.volumeInfo?.publisher,
-        publishedDate: item.volumeInfo?.publishedDate,
-        description: item.volumeInfo?.description,
-        previewLink: item.volumeInfo?.previewLink,
-        thumbnail: item.volumeInfo?.imageLinks?.thumbnail
-      })
+  livrosResultadoParaLivros(items: Item[]):  LivroColumeInfo[] {
+    return items.map(item => {
+      return new LivroColumeInfo(item);
     })
-
-    return livros
-  }
-
-  ngOnDestroy(): void {
-    this.subscription.unsubscribe();
   }
 }
 
